@@ -1,0 +1,48 @@
+name: Daily FINRA Short Volume Ingest
+
+on:
+  schedule:
+    - cron: "30 23 * * *"  # runs daily at 1:00 UTC (free, no API cost)
+  workflow_dispatch:     # allows manual free re-run if needed
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'  # prevents duplicate ingestion from other branches
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install polars  # fast CSV/GZIP parser, free, very quick for 10k rows
+          pip install requests
+          pip install psycopg2-binary  # postgres client for Supabase
+          pip install numpy
+
+      - name: Download FINRA short volume data (compressed if available)
+        env:
+          DATA_URL: "https://cdn.finra.org/equity/regsho/daily/CNMSshvol<DATE>.txt"
+        run: |
+          TODAY=$(date +'%Y%m%d')
+          FILE_URL=${DATA_URL/\<DATE\>/$TODAY}
+          echo "Downloading file: $FILE_URL"
+          curl -sSfL "$FILE_URL" -o finra_today.txt.gz
+
+      - name: Run ingestion + analytics pipeline
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          python ingest_finra.py --file finra_today.txt.gz --url "$SUPABASE_URL" --key "$SUPABASE_KEY"
+
+      - name: Output pipeline timing (no raw data)
+        run: echo "✅ FINRA daily ingestion completed"
+
