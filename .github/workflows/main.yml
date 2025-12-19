@@ -41,7 +41,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
-          python ingest_finra.py --file finra_today.txt.gz --url "$SUPABASE_URL" --key "$SUPABASE_KEY"
+          python ingest_finra.py "$SUPABASE_URL" "$SUPABASE_KEY"
 
       - name: Output pipeline timing (no raw data)
         run: echo "✅ FINRA daily ingestion completed"
