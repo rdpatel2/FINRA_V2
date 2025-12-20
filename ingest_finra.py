@@ -60,10 +60,10 @@ def read_data():
     # SELECT AVG(ShortPct) FROM finra_metrics WHERE Date = YDAY GROUP BY Symbol
     # We also need to add functionality so that if today is a sunday or monday to use last friday's data (go back 1 or 2 dates)
     today = datetime.date.today()
-    if today.weekday() == 0
+    if today.weekday() == 0:
         # today is a monday then we have to go back to last friday to et the last days data
         yday_date = datetime.date.today() - datetime.timedelta(days=3)
-    elif today.weekday() == 6 
+    elif today.weekday() == 6:
         # today is a sunday then we have to go back to friday to get the last days data
         yday_date = datetimte.date.today() - datetime.timedelta(days=2)
     else:
@@ -77,3 +77,7 @@ def read_data():
     )
     # This res will give all symbols that have a previous short %, we need to parse through data frame and assign short momentum to all entries with same symbol
     print(response)
+
+    df_ydayMom = pd.json_normalize(response["data"])
+    df = df.merge(df_ydayMom, how="left", on="Symbol")
+    print(df)
