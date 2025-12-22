@@ -1,83 +1,92 @@
 import polars as pl
-import argparser
+import argparse
 import os
 from supabase import create_client, Client
+import financedatabase as fd
 import datetime
+import psycopg2
+
+# Set to true for local testing, false for github actions script
+TEST = True
+
+if TEST:
+    from dotenv import load_dotenv
+    load_dotenv()
 
 def read_data():
+    # Scan in number of entries 
+    total_rows = pl.scan_csv(
+    "finra_today.txt",
+    separator="|",
+    ).select(pl.len()).collect().item()
+    
+    # Scan in everything before the last line
     df = pl.scan_csv(
         "finra_today.txt",
         separator="|",
         schema={
-            "Date": pl.Int32,
-            "Symbol": pl.Utf8,
-            "ShortVolume": pl.Int64,
-            "ShortExemptVolume": pl.Int64,
-            "TotalVolume": pl.Int64,
-            "Market": pl.Utf8,
-        }
+            "date": pl.Utf8,
+            "symbol": pl.Utf8,
+            "short_volume": pl.Int64,
+            "shortExemptVolume": pl.Int64,
+            "total_volume": pl.Int64,
+            "market": pl.Utf8,
+        },
+        n_rows = total_rows - 1
     ).collect()
 
     # Convert Date column from 20251126 → real date type
     df = df.with_columns(
-        pl.col("Date")
+        pl.col("date")
         .cast(pl.Utf8)
           .str.strptime(pl.Date, "%Y%m%d")
     )
 
-    # Split Market column "B,Q,N" → ["B","Q","N"] and explode
-    df = df.with_columns(
-        pl.col("Market").str.split(",")
-    ).explode("Market")
+    # Assign things like industry, sector, and exchange to equities and etfs
+    df = df.drop(['market', 'shortExemptVolume'])
+    equities = fd.Equities().select().reset_index()
+    equities = equities.drop(columns=['summary', 'currency', 'industry_group', 'market', 'country', 'state', 'city', 'zipcode', 'website', 'market_cap', 'isin', 'cusip', 'figi', 'composite_figi', 'shareclass_figi'])
+    etfs = fd.ETFs().select().reset_index()
+    etfs = etfs.drop(columns=['currency', 'summary', 'category_group', 'category', 'family', 'Unnamed: 8', 'Unnamed: 9'])
 
-    df = df.with_columns(pl.col("ShortVolume") / pl.col("TotalVolume")).alias("ShortPct")
-    df = df.with_columns(pl.col("ShortExemptVolume") / pl.col("ShortVolume")).alias("ExemptPct")
-
-
-    # TODO: read in command line args, --url "SUPABASE_URL" --key "SUPABASE_KEY"
     # This script should only be executed by github actions, so key and url will be stored in secrets, not seen
-    parser = argparse.ArgumentParser()
-    parser.add_argument("url", help="Enter the url for the supabase DB")
-    parser.add_argument("key", help="Enter the key for the supabase DB")
+    if TEST: 
+        url = os.getenv("SUPABASE_URL")
+        key = os.getenv("SUPABASE_KEY")
+    else:
+        parser = argparse.ArgumentParser()
+        parser.add_argument("url", help="Enter the url for the supabase DB")
+        parser.add_argument("key", help="Enter the key for the supabase DB")
 
-    # TODO: connect to DB, upload data, create second table
-    args = parser.parse_args()
-    url = args.url
-    key = args.key
+        args = parser.parse_args()
+        url = args.url
+        key = args.key
+
     try:
         client = create_client(url, key)
         print("Connection successful")
     except Exception as e:
         print(e)
-    
+
+    # Add data from the finanace database lib to our main polar dataframe
+    # Need pyarrow
+    df = df.join(pl.from_pandas(equities), how="left", on="symbol")
+    df = df.join(pl.from_pandas(etfs), how="left", on="symbol")
+    df = df.drop(['exchange_right', 'name_right'])
+    df = df.drop_nulls(subset=['symbol', 'date', 'short_volume', 'total_volume'])
+
     # Insert data into db
-    response = (
-        client.table("raw_finra")
-        .insert(df.to_dict(orient="dict"))
-        .execute()
-    )
-    # Short Momentum = short % tdy - short % yday
-    # SELECT AVG(ShortPct) FROM finra_metrics WHERE Date = YDAY GROUP BY Symbol
-    # We also need to add functionality so that if today is a sunday or monday to use last friday's data (go back 1 or 2 dates)
-    today = datetime.date.today()
-    if today.weekday() == 0:
-        # today is a monday then we have to go back to last friday to et the last days data
-        yday_date = datetime.date.today() - datetime.timedelta(days=3)
-    elif today.weekday() == 6:
-        # today is a sunday then we have to go back to friday to get the last days data
-        yday_date = datetimte.date.today() - datetime.timedelta(days=2)
-    else:
-        # If we are at a date T - Sa, then the previous date will have data
-        yday_date = datetimte.date.today() - datetime.timedelta(days=1)
+    df = df.with_columns([
+        pl.col(pl.Date).cast(pl.Utf8)
+    ])
 
     response = (
         client.table("finra_metrics")
-        .select("Symbol, ShortPct.avg()")
-        .eq("Date", yday_date)
+        .insert(df.to_dicts())
+        .execute()
     )
-    # This res will give all symbols that have a previous short %, we need to parse through data frame and assign short momentum to all entries with same symbol
-    print(response)
 
-    df_ydayMom = pd.json_normalize(response["data"])
-    df = df.merge(df_ydayMom, how="left", on="Symbol")
-    print(df)
+    response = client.rpc('update_all_zscores').execute()
+    print(f"Updated z-scores for {response.data} rows")
+
+read_data()
