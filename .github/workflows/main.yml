@@ -28,6 +28,7 @@ jobs:
           pip install numpy
           pip install financedatabase -U
           pip install pyarrow
+          pip install supabase
 
       - name: Download FINRA short volume data (compressed if available)
         env:
