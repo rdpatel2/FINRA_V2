@@ -29,6 +29,7 @@ jobs:
           pip install financedatabase -U
           pip install pyarrow
           pip install supabase
+          pip install dotenv
 
       - name: Download FINRA short volume data (compressed if available)
         env:
