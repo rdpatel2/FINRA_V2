@@ -5,12 +5,12 @@ from supabase import create_client, Client
 import financedatabase as fd
 import datetime
 import psycopg2
+from dotenv import load_dotenv
 
 # Set to true for local testing, false for github actions script
 TEST = False
 
 if TEST:
-    from dotenv import load_dotenv
     load_dotenv()
 
 def read_data():
