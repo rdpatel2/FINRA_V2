@@ -7,7 +7,7 @@ import datetime
 import psycopg2
 
 # Set to true for local testing, false for github actions script
-TEST = True
+TEST = False
 
 if TEST:
     from dotenv import load_dotenv
