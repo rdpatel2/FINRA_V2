@@ -38,7 +38,7 @@ jobs:
           TODAY=$(TZ=America/New_York date +'%Y%m%d')
           FILE_URL=${DATA_URL/\<DATE\>/$TODAY}
           echo "Downloading file: $FILE_URL"
-          curl -sSfL "$FILE_URL" -o finra_today.csv
+          curl -sSfL "$FILE_URL" -o finra_today.txt
 
       - name: Run ingestion + analytics pipeline
         env:
