@@ -28,12 +28,14 @@ jobs:
           pip install numpy
           pip install financedatabase -U
           pip install pyarrow
+          pip install supabase
+          pip install dotenv
 
       - name: Download FINRA short volume data (compressed if available)
         env:
           DATA_URL: "https://cdn.finra.org/equity/regsho/daily/CNMSshvol<DATE>.txt"
         run: |
-          TODAY=$(date +'%Y%m%d')
+          TODAY=$(TZ=America/New_York date +'%Y%m%d')
           FILE_URL=${DATA_URL/\<DATE\>/$TODAY}
           echo "Downloading file: $FILE_URL"
           curl -sSfL "$FILE_URL" -o finra_today.csv
