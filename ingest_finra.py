@@ -5,13 +5,13 @@ from supabase import create_client, Client
 import financedatabase as fd
 import datetime
 import psycopg2
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
 # Set to true for local testing, false for github actions script
 TEST = False
 
 if TEST:
-    load_dotenv()
+   # load_dotenv()
 
 def read_data():
     # Scan in number of entries 
@@ -51,8 +51,8 @@ def read_data():
 
     # This script should only be executed by github actions, so key and url will be stored in secrets, not seen
     if TEST: 
-        url = os.getenv("SUPABASE_URL")
-        key = os.getenv("SUPABASE_KEY")
+      #  url = os.getenv("SUPABASE_URL")
+      #  key = os.getenv("SUPABASE_KEY")
     else:
         parser = argparse.ArgumentParser()
         parser.add_argument("url", help="Enter the url for the supabase DB")
