@@ -2,7 +2,7 @@ name: Daily FINRA Short Volume Ingest
 
 on:
   schedule:
-    - cron: "30 23 * * *"  # runs daily at 1:00 UTC (free, no API cost)
+    - cron: "30 23 * * 1-5"  # runs daily at 1:00 UTC (free, no API cost)
   workflow_dispatch:     # allows manual free re-run if needed
 
 jobs:
@@ -38,7 +38,7 @@ jobs:
           TODAY=$(TZ=America/New_York date +'%Y%m%d')
           FILE_URL=${DATA_URL/\<DATE\>/$TODAY}
           echo "Downloading file: $FILE_URL"
-          curl -sSfL "$FILE_URL" -o finra_today.csv
+          curl -sSfL "$FILE_URL" -o finra_today.txt
 
       - name: Run ingestion + analytics pipeline
         env:
