@@ -32,7 +32,7 @@ async def getDateMovement(date: date):
         .execute() 
     return response
 
-@app.get("sector-movement/{sector}")
+@app.get("/sector-movement/{sector}")
 async def getSectorMovement(sector: str):
     response = client.table("finra_metrics") \
         .select("*") \
@@ -40,7 +40,7 @@ async def getSectorMovement(sector: str):
         .execute()
     return response
 
-@app.get("industry-movement/{industry}")
+@app.get("/industry-movement/{industry}")
 async def getIndustryMovement(industry: str):
     response = client.table("finra_metrics") \
         .select("*") \
@@ -48,7 +48,7 @@ async def getIndustryMovement(industry: str):
         .execute()
     return response
 
-@app.get("symbol-movement/{symbol}")
+@app.get("/symbol-movement/{symbol}")
 async def getSymbolMovement(symbol: str):
     response = client.table("finra_metrics") \
         .select("*") \
