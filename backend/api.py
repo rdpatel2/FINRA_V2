@@ -4,8 +4,18 @@ from supabase import create_client, Client
 import psycopg2
 import os
 from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",  # React / frontend
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 load_dotenv()
 
@@ -22,7 +32,10 @@ except Exception as e:
 
 @app.get("/")
 async def root():
-    return {"message" : "Hello World"}
+    response = client.table("finra_metrics") \
+        .select("*") \
+        .execute()
+    return response
 
 @app.get("/date-movement/{date}")
 async def getDateMovement(date: date):

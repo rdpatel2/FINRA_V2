@@ -2,10 +2,16 @@ import axios from "axios";
 import { Trade } from "../types/trade";
 
 const api = axios.create({
-  baseURL: "http://localhost:5000",
+  baseURL: "http://localhost:8000",
 });
 
 export const FinraApi = {
+
+  getAll(): Promise<Trade[]> {
+    return api.get<Trade[]>('/')
+    .then(res => res.data);
+  },
+
   getByDate(date: string): Promise<Trade[]> {
     return api
       .get<Trade[]>(`/date-movement/${date}`)
