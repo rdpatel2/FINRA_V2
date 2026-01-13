@@ -33,7 +33,7 @@ jobs:
 
       - name: Download FINRA short volume data (compressed if available)
         env:
-          DATA_URL: "https://cdn.finra.org/equity/regsho/daily/CNMSshvol<DATE>.txt"
+          DATA_URL: "https://cdn.finra.org/equity/regsho/daily/CNMSshvol20260112.txt"
         run: |
           TODAY=$(TZ=America/New_York date +'%Y%m%d')
           FILE_URL=${DATA_URL/\<DATE\>/$TODAY}
