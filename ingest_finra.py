@@ -86,7 +86,9 @@ def read_data():
         .execute()
     )
 
-    response = client.rpc('update_all_zscores').execute()
-    print(f"Updated z-scores for {response.data} rows")
+    while True:
+        res = client.rpc("update_all_zscores", {"batch_size": 500}).execute()
+        if res.data == 0:
+            break
 
 read_data()
