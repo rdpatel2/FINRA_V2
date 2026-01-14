@@ -86,6 +86,6 @@ def read_data():
         .execute()
     )
 
-    res = client.rpc("update_today_zscores").execute()
-    print(res.data)
+    #res = client.rpc("update_today_zscores").execute()
+    # print(res.data)
 read_data()
