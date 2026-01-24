@@ -1,5 +1,12 @@
 ## SETUP (Run all code blocks in terminal)
 
+### Cloning
+~~~~~~~~~~~~~~~~~
+Donwload git (PREREQ)
+
+git clone https://github.com/rdpatel2/FINRA_V2
+~~~~~~~~~~~~~~~~~
+
 ### Venv setup
 ~~~~~~~~~~~~~~~~~
 python -m venv venv
