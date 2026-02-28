@@ -27,9 +27,9 @@ def read_data():
         schema={
             "date": pl.Utf8,
             "symbol": pl.Utf8,
-            "short_volume": pl.Int64,
-            "shortExemptVolume": pl.Int64,
-            "total_volume": pl.Int64,
+            "short_volume": pl.Float64,
+            "shortExemptVolume": pl.Float64,
+            "total_volume": pl.Float64,
             "market": pl.Utf8,
         },
         n_rows = total_rows - 1
@@ -74,7 +74,10 @@ def read_data():
     df = df.join(pl.from_pandas(etfs), how="left", on="symbol")
     df = df.drop(['exchange_right', 'name_right'])
     df = df.drop_nulls(subset=['symbol', 'date', 'short_volume', 'total_volume'])
-
+    # cast short volume from float to int
+    df = df.with_columns(pl.col("short_volume").cast(pl.Int64))
+    df = df.with_columns(pl.col("shortExemptVolume").cast(pl.Int64))
+    df = df.with_columns(pl.col("total_volume").cast(pl.Int64))
     # Insert data into db
     df = df.with_columns([
         pl.col(pl.Date).cast(pl.Utf8)
