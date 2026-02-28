@@ -76,7 +76,6 @@ def read_data():
     df = df.drop_nulls(subset=['symbol', 'date', 'short_volume', 'total_volume'])
     # cast short volume from float to int
     df = df.with_columns(pl.col("short_volume").cast(pl.Int64))
-    df = df.with_columns(pl.col("shortExemptVolume").cast(pl.Int64))
     df = df.with_columns(pl.col("total_volume").cast(pl.Int64))
     # Insert data into db
     df = df.with_columns([
