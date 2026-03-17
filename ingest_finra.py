@@ -47,7 +47,7 @@ def read_data():
     equities = fd.Equities().select().reset_index()
     equities = equities.drop(columns=['summary', 'currency', 'industry_group', 'market', 'country', 'state', 'city', 'zipcode', 'website', 'market_cap', 'isin', 'cusip', 'figi', 'composite_figi', 'shareclass_figi'])
     etfs = fd.ETFs().select().reset_index()
-    etfs = etfs.drop(columns=['currency', 'summary', 'category_group', 'category', 'family', 'Unnamed: 8', 'Unnamed: 9'])
+    etfs = etfs.drop(columns=['currency', 'summary', 'category_group', 'category', 'family'])
 
     # This script should only be executed by github actions, so key and url will be stored in secrets, not seen
     if TEST: 
