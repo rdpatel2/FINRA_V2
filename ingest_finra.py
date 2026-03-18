@@ -81,6 +81,9 @@ def read_data():
     df = df.with_columns([
         pl.col(pl.Date).cast(pl.Utf8)
     ])
+    
+    db_columns = ["date", "symbol", "exchange", "industry", "sector", "name", "short_volume", "total_volume"]
+    df = df.select([c for c in db_columns if c in df.columns])
 
     response = (
         client.table("finra_metrics")
